@@ -1,17 +1,24 @@
----
-layout: default
----
-{%- include header.html -%}
-<main class="post__wrapper">
-  {%- include header_nav.html -%}
-  <article class="post">
-    <header class="post__header">
-      <h1 class="post__title page__title">{{ page.title | escape }}</h1>
-    </header>
-    <div class="post__content content">
-      {{ content | img_prefix }}
-    </div>
-  </article>
-  {%- include contact.html -%}
-</main>
-{%- include footer.html -%}
+<!DOCTYPE html>
+<html>
+
+{% include head.html %}
+
+<body>
+  <div class="content">
+
+    {% include header.html %}
+
+    {% include mobile_menu.html %}
+    
+    <main class="main">
+
+    {{ content }}
+
+    </main>
+
+  </div>
+
+  {% include footer.html %}
+  {% include js.html %}
+</body>
+</html>

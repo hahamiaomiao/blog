@@ -1,24 +1,36 @@
-<a href="{{ "/" | relative_url }}" class="logo">
-  {%- if site.logo -%}
-  <img src="{{ site.logo | img_url_prefix }}" class="logo_img">
-  {%- endif -%}
-  <h1>{{ site.title }}</h1>
-</a>
-{%- if "slides,chapter,book" contains page.layout and site.theme_setting.archive_page -%}
-{%- assign archive_page = site.pages | where: "path", site.theme_setting.archive_page | first -%}
-<a href="{{ archive_page.url | relative_url }}" class="sidebar__toggler">
-  <span class="sidebar__toggler_top"></span>
-  <span class="sidebar__toggler_middle"></span>
-  <span class="sidebar__toggler_bottom"></span>
-</a>
-{%- endif %}
-{%- if page.layout == "chapter" -%}
-<div class="book-header" role="navigation">
-    <a href="#" id="summaryToggler" class="summary__toggler">
-      {% include icons/ellipsis.html%}
+<header class="header">
+
+  <div class="header_content">
+    <label class="theme_changer">
+      <input theme_toggle type="checkbox">
+      <div class="button"></div>
+    </label>
+    <a class="header_circle" href="{{ '/' | relative_url }}">
+      <img src="{{ site.user.pic | relative_url }}" alt="{{ site.user.picAlt }}">
     </a>
-  <h1>
-    {{ page.title }} - {{ page.book.title }}
-  </h1>
-</div>
-{%- endif -%}
+    <span class="header_name">{{ site.user.name }}</span>
+    <span class="header_job">{{ site.user.job }}</span>
+    <span class="header_mes">{{ site.user.message }}</span>
+
+    <nav class="nav">
+      {% if site.user.aboutme %}
+      <ul class="nav_list">
+        <li class="nav_item">
+          <a href="{{ site.baseurl }}/aboutme.html">about</a>
+        </li>
+      </ul>
+      {% endif %}
+      {% for category in site.categories %}
+      {% capture cat_name %}{{ category | first }}{% endcapture %}
+      <ul class="nav_list">
+        <li class="nav_item">
+          <a href="{{ site.baseurl }}/categories/{{ cat_name }}" id="aa">{{ cat_name }}
+            ({{ category | last | size }})</a>
+        </li>
+      </ul>
+      {% endfor %}
+    </nav>
+  </div>
+
+</header>
+
