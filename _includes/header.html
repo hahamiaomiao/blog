@@ -1,19 +1,24 @@
-<header id="index-header">
-  <div class="top-center">
-      <div class="logo">
-          <a href="{{ "/" | relative_url }}" title="my awesome webtitle">{{ site.webtitle }}</a>
-      </div>
-      <nav class="top-nav">
-          <ul>
-              {% for i in site.nav %}
-                <li><a href="{{ i[1] }}">{{ i[0] }}</a></li>
-              {% endfor %}
-          </ul>
-      </nav>
-      <div id="top-boot">
-        <a href="javascript:;" id="boot1" style="display:block;" onclick="document.getElementById('boot-area').style.display='block';document.getElementById('boot1').style.display='none';document.getElementById('boot2').style.display='block';"><img src="/assets/boot.png" alt=""></a>
-        <a href="javascript:;" id="boot2" style="display: none;" onclick="document.getElementById('boot-area').style.display='none';document.getElementById('boot1').style.display='block';document.getElementById('boot2').style.display='none';"><img src="/assets/boot.png" alt=""></a>
-      </div>
-  </div>
-
-</header>
+<a href="{{ "/" | relative_url }}" class="logo">
+  {%- if site.logo -%}
+  <img src="{{ site.logo | img_url_prefix }}" class="logo_img">
+  {%- endif -%}
+  <h1>{{ site.title }}</h1>
+</a>
+{%- if "slides,chapter,book" contains page.layout and site.theme_setting.archive_page -%}
+{%- assign archive_page = site.pages | where: "path", site.theme_setting.archive_page | first -%}
+<a href="{{ archive_page.url | relative_url }}" class="sidebar__toggler">
+  <span class="sidebar__toggler_top"></span>
+  <span class="sidebar__toggler_middle"></span>
+  <span class="sidebar__toggler_bottom"></span>
+</a>
+{%- endif %}
+{%- if page.layout == "chapter" -%}
+<div class="book-header" role="navigation">
+    <a href="#" id="summaryToggler" class="summary__toggler">
+      {% include icons/ellipsis.html%}
+    </a>
+  <h1>
+    {{ page.title }} - {{ page.book.title }}
+  </h1>
+</div>
+{%- endif -%}
