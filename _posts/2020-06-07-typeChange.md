@@ -13,6 +13,7 @@ comments: true
 - Symbol
 - BigInt
 > BigInt是一种新的数据类型，用于当整数值大于Number数据类型支持的范围时。这种数据类型允许我们安全地对大整数执行算术操作，表示高分辨率的时间戳，使用大整数id，等等，而不需使用库。重要的是，不能使用number和bigInt操作数的混合执行算术运算，需要通过显示转换其中的一种类型。此外，由于兼容性原因，不允许在bigIng上使用一元加号（+）运算符。
+
 ### 1.2 引用数据类型(Object)
 javaScript中内置了很多对象
 - Array
@@ -88,6 +89,7 @@ javaScript中内置了很多对象
 - unescape()
 - uneval()
 > 大家不要看JavaScript的内置对象这么多，转换时只需要把这么统统当作一个类型（引用类型）进行转换就行，在JavaScript内部中转换也不会考虑这么多。
+
 ## 二、自动装箱
 > 为了方便操作基本数据类型，ECMAScript还提供了三个特殊的引用类型，基本包装类型，String、Boolean、Number。有了这三个类型，在需要的时候，原始类型会自动转换成相应的包装对象（这个过程叫自动装箱）。自动装箱就是临时创建一个包装对象，将原始类型的值封装起来，以便调用包装对象的函数。但是原来那个变量的值不会有任何变化。
 
@@ -96,9 +98,9 @@ var s = 'hello'
 var s1 = s.substring(2)
 ```
 字符串是基本数据类型，为啥能调用方法呢，这其实在后台进行了一系列的操作
-- 1. 创建String类型的一个实例
-- 2. 在实例上调用指定的方法
-- 3. 销毁这个实例
+-1. 创建String类型的一个实例
+-2. 在实例上调用指定的方法
+-3. 销毁这个实例
 
 ```
 var s = new String('hello')
@@ -133,10 +135,11 @@ string转换为数字<br>
  undefined,null转化为数字为NaN, 0
 
 引用类型转化为布尔值为true<br>
- 各类引用类型转化为字符串<br>
+各类引用类型转化为字符串:<br>
  - 函数转化为字符串，加上""<br>
  - 数组转化为字符串，去掉中括号，加上""。`[1,2] => '1,2'`<br>
- - 对象转化为字符串，'[object Object]'<br>
+ - 对象转化为字符串，'[object Object]'
+
 引用类型转化为数字，除了数组的引用类型，都为NaN<br>
  - 空数组为0，存在一个元素且为数字转数字，其它情况为NaN
 
@@ -200,29 +203,29 @@ function DefaultString(x) {
 ToPrimitive将input转换为基本数据类型，PreferredType要么不传，要么是number、string。
 
 #### 4.1.1 PreferredType为number
-- 1. 如果input本身就是原始类型，直接返回input。
-- 2. 调用input.valueOf()，如果结果是原始类型，则返回这个结果。
-- 3. 调用input.toString()，如果结果是原始类型，则返回这个结果。
-- 4. 抛出TypeError异常。
+- 1.如果input本身就是原始类型，直接返回input。
+- 2.调用input.valueOf()，如果结果是原始类型，则返回这个结果。
+- 3.调用input.toString()，如果结果是原始类型，则返回这个结果。
+- 4.抛出TypeError异常。
 
 #### 4.1.2 PreferredType为string
-- 1. 如果input本身是原始类型，直接返回input。
-- 2. 调用input.toString()，如果结果是原始类型，则返回这个结果。
-- 3. 调用input.valueOf()，如果结果是原始类型，则返回这个结果。
-- 4. 抛出TypeError异常。
+- 1.如果input本身是原始类型，直接返回input。
+- 2.调用input.toString()，如果结果是原始类型，则返回这个结果。
+- 3.调用input.valueOf()，如果结果是原始类型，则返回这个结果。
+- 4.抛出TypeError异常。
 
 #### 4.1.3 PreferredType不传
-- 1. 如果input是内置的Date类型，PreferredType视为String
-- 2. 否则PreferredType视为Number
+- 1.如果input是内置的Date类型，PreferredType视为String
+- 2.否则PreferredType视为Number
 ```
 // 面试题：
 ({}) + 1 // '[object Object]1'
 ```
 +号操作符，只有当左右两边的类型相同（都为string或者number）是才进行操作。所以会经历如下步骤：<br>
-- 1. {}和1都会调用ToPrimitive，1原始类型直接返回。
-- 2. {}内部调用DefaultNumber，使用valueOf方法，返回object。
-- 3. 在调用toString方法，返回[object, Object]。
-- 4. 所以最后的结果就是[object, Object]1。
+- 1.{}和1都会调用ToPrimitive，1原始类型直接返回。
+- 2.{}内部调用DefaultNumber，使用valueOf方法，返回object。
+- 3.在调用toString方法，返回[object, Object]。
+- 4.所以最后的结果就是[object, Object]1。
 
 ### 4.2 ToBoolean(argument)
 - undefined,null ----false<br>
@@ -269,9 +272,9 @@ if(!undefined && !null && !0 && !NaN && !'') {
 因为在乘号的两端，js期望得到number类型的值，所以对右边的那个对象使用ToNumber(argument)，得到结果5，再与乘号左边的3相乘。
 
 在内部发生的事情：<br>
-- 1. {valueOf: function() {return 5}}不是原始类型，执行ToPrimitive({valueOf: function() {return 5}}, hint number)
-- 2. 调用valueOf方法，返回5
-- 3. 执行ToNumber(5)，返回5
+- 1.{valueOf: function() {return 5}}不是原始类型，执行ToPrimitive({valueOf: function() {return 5}}, hint number)
+- 2.调用valueOf方法，返回5
+- 3.执行ToNumber(5)，返回5
 
 ### 5.3 家号有别于其他运算符
 - 如果有一边是字符串，就把另一边也转换为字符串<br>
@@ -288,8 +291,8 @@ String({a: 1})  //  "[object Object]"
 ```
 前面两个类型转换没有什么好解释的，我们看看最后一个String({a: 1})。<br>
 在内部发生的事情：<br>
-- 1. 执行转换String({a: 1})
-- 2. 执行内部的ToString({a: 1})
-- 3. {a: 1}不是原始类型，执行ToPrimitive({a: 1}, hint string)
-- 4. 调用toString方法，返回"[object, object]"
-- 5. 执行ToString("[object, object]")，返回"[object, object]"
+- 1.执行转换String({a: 1})
+- 2.执行内部的ToString({a: 1})
+- 3.{a: 1}不是原始类型，执行ToPrimitive({a: 1}, hint string)
+- 4.调用toString方法，返回"[object, object]"
+- 5.执行ToString("[object, object]")，返回"[object, object]"
