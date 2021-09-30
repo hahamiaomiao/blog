@@ -55,11 +55,11 @@ Promise.any(promiseList2).then(values=>{
 });
 ```
 
-### WeakRefs
+### 3. WeakRefs
 
 使用 WeakRefs 的 Class 类创建对于对象的弱引用（对于对象若饮用是指当该对象应该被 GC 回收时，不会阻止 GC 的回收行为）。
 
-### 运算符（&&=, ||=, ??=）
+### 4. 运算符（&&=, ||=, ??=）
 
 ```
 a = 1;
@@ -79,7 +79,7 @@ if(a == null || a == undefined) {
 
 ```
 
-### 数字分隔符
+### 5. 数字分隔符
 
 数字分隔符，可以使用\_分割数字，方便阅读较大的数字
 
@@ -95,4 +95,433 @@ console.log(number) // 987654321
 const number = 1_0000
 console.log(number) // 10000
 // chrome已支持
+```
+
+## ES11
+
+### BigInt
+
+在 JavaScript 中，数值类型 Number 是 64 位浮点数，所以计算精度和表示范围都有一定限制。新增的 BigInt 数据类型，这也是 JavaScript 引入的第八种基本类型。BigInt 可以表示任意大的整数。
+
+```
+BigInt(value);
+```
+
+其中 value 是创建对象的数值。可以是字符串或者整数。
+
+在 Javascript 中，Number 基本类型可以精确表示的最大整数是 253.因此早期会有这样的问题：
+
+```
+let max = Number.MAX_SAFE_INTEGER;
+let max1 = max + 1
+let max2 = max + 2
+
+max1 === max2  // true
+```
+
+有了该类型，这个问题就不复存在了
+
+```
+let max = BigInt(Number.MAX_SAFE_INTEGER);
+
+let max1 = max + 1n
+let max2 = max + 2n
+
+max1 === max2   // false
+```
+
+可以通过 typeof 操作符来判断变量是否为 BigInt 类型
+
+```
+typeof 1n === 'bigint'; // true
+typeof BigInt('1') === 'bigint'; // true
+```
+
+还可以通过 Object.prototype.toString 方法来判断变量是否为 BigInt 类型
+
+```
+Object.prototype.toString.call(10n) === '[object BigInt]';    // true
+```
+
+注意，BigInt 和 Number 不是严格相等的，但是宽松相等：
+
+```
+10n === 10 // false
+10n == 10  // true
+```
+
+Number 和 BigInt 可以进行比较：
+
+```
+1n < 2;    // true
+2n > 1;    // true
+2 > 2;     // false
+2n > 2;    // false
+2n >= 2;   // true
+```
+
+### 空值合算运算符（??）
+
+在编写代码时，如果某个属性不为 null 和 undefined，那么就获取该属性，如果该属性为 null 或 undefined，则取一个默认值：
+
+```
+const name = dogName ? dogName : 'default';
+
+// 通过||来简化
+const name =  dogName || 'default';
+```
+
+但是||的写法存在一定的缺陷，当 dogName 为 0 或者 false 的时候也会走到 default 的逻辑。??运算符只有左边为 null 或 undefined 时才返回右边的值
+
+```
+const dogName = false;
+const name = dogName ?? 'default'; // name = false
+```
+
+### 可选链操作符（?.）
+
+在开发过程中，我们经常需要获取深层次属性，例如 system.user.addr.province.name。但在获取 name 这个属性前需要一步步的判断前面的属性是否存在，否则会报错：
+
+```
+const name = (system&&system.user&&system.user.addr&&system.user.province&&system.user.province.name) || 'default';
+```
+
+为了简化上述过程，可选链操作符（?.），允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每一个引用是否有效。（?.）操作符功能类似于（.）链式操作符，不同之处在于，在引用为 null 或 undefined 的情况下不会引起错误，该表达式短路返回值是 undefined。在函数调用一起使用时，如果给定的函数不存在，则返回 undefined。
+
+```
+const name = system?.user?.addr?.province?.name || 'default';
+```
+
+当尝试访问可能不存在的对象属性时，可选链操作符将会使表达式更短、更简明。在探索一个对象的内容时，如果不能确定哪些属性必定存在，可选链操作符也是很有帮助的。
+
+可选链有以下三种形式：
+
+```
+a?.[x]
+// 等同于
+a == null? undefined : a[x]
+
+a?.b()
+// 等同于
+a == null ? undefined : a.b()
+
+a?.()
+// 等同于
+a == null ? undefined : a()
+```
+
+在使用 TypeScript 开发时，这个操作符可以解决很多问题。
+
+## ES10
+
+### flat()和 flatMap()
+
+(1) flat()
+
+flat 方法用于创建并返回一个新数组，这个新数组包含与它调用 flat()的数组相同的元素，只不过其中任何本身也是数组的元素会被打平填充到返回的数组中：
+
+```
+[1, [2, 3]].flat()        // [1, 2, 3]
+[1, [2, [3, 4]]].flat()   // [1, 2, [3, 4]]
+```
+
+在不传参数时，flat 默认只会打平一级嵌套，如果想要打平更多的层级，就需要传给 flat 一个数值参数，这个参数表示要打平的层级数
+
+```
+[1, [2, [3, 4]]].flat(2)  // [1, 2, 3, 4]
+```
+
+如果数组中存在空项，会直接跳过
+
+```
+[1, [2, , 3]].flat());    //  [1, 2, 3]
+```
+
+如果传入的参数小雨等于 0，就会返回原数组：
+
+```
+[1, [2, [3, [4, 5]]]].flat(0);    //  [1, [2, [3, [4, 5]]]]
+[1, [2, [3, [4, 5]]]].flat(-10);  //  [1, [2, [3, [4, 5]]]]
+```
+
+（2）flatMap()
+
+flatMap 方法使用映射函数映射每个元素，然后将结果压缩成一个新数组。它与 map 和连着深度值为 1 的 flat 几乎相同，但 flatMap 通常在合并成一种方法的效率稍微高一些。该方法会返回一个新的数组，其中每个元素都是回调函数的结果，并且结构深度 depth 值为 1.
+
+```
+[1, 2, 3, 4].flatMap(x => x * 2);      //  [2, 4, 6, 8]
+[1, 2, 3, 4].flatMap(x => [x * 2]);    //  [2, 4, 6, 8]
+
+[1, 2, 3, 4].flatMap(x => [[x * 2]]);  //  [[2], [4], [6], [8]]
+[1, 2, 3, 4].map(x => [x * 2]);        //  [[2], [4], [6], [8]]
+
+```
+
+### Object.fromEntries()
+
+Object.fromEntries 方法可以把键值对列表转换成对象。该方法相当于 Object.entries()方法的逆过程。Object.entries()方法返回一个给定对象自身可枚举属性的键值对数组，而 Object.fromEntries() 方法把键值对列表转换为一个对象。
+
+```
+const object = { key1: 'value1', key2: 'value2' }
+const array = Object.entries(object)  // [ ["key1", "value1"], ["key2", "value2"] ]
+
+Object.fromEntries(array)             // { key1: 'value1', key2: 'value2' }
+```
+
+使用该方法主要有以下两个用途：
+
+（1）将数组转成对象
+
+```
+const entries = [
+  ['foo', 'bar'],
+  ['baz', 42]
+]
+Object.fromEntries(entries)  //  { foo: "bar", baz: 42 }
+```
+
+（2）将 Map 转成对象
+
+```
+const entries = new Map([
+  ['foo', 'bar'],
+  ['baz', 42]
+])
+Object.fromEntries(entries)  //  { foo: "bar", baz: 42 }
+```
+
+## ES9
+
+### for await...of
+
+for await...of 方法被称为异步迭代器，该方法是主要用来遍历异步对象。
+
+for await...of 语句会在异步或者同步可迭代对象上创建一个迭代循环，包括 String, Array, 类数组, Map, Set 和自定义的异步或者同步可迭代对象。这个语句只能在 async function 内使用：
+
+```
+function Gen(time) {
+  return new Promise((resolve, reject) => {
+    setTimeout(function() {
+      resolve(time)
+    }, time)
+  })
+}
+
+async function test () {
+  let arr = [Gen(1000),Gen(2000), Gen(3000)]
+  for await (let item of arr) {
+    console.log(Date.now(), item)
+    /*
+    1632987682922 1000
+    1632987682922 2000
+    1632987683924 3000
+    */
+  }
+}
+
+test()
+```
+
+## ES8
+
+### Object.values 和 Object.entries()
+
+在 ES5 中就引入了 Object.keys 方法，在 ES8 中引入了跟 Object.keys 配套的 Object.values 和 Object.entries，作为遍历一个对戏那个的补充手段，供 for...of 循环使用。它们都用来遍历对象，它会返回一个由给定对象的自身可枚举属性（不含继承的和 Symbol 属性）组成的数组，数组元素的排列顺序和正常循环该对象时返回的顺序一致，这个三个元素返回的值分别如下：
+
+- Object.keys(): 返回包含对象键名的数组
+
+- Object.values(): 返回包含对象键值的数组
+
+- Object.keys(): 返回包含对象键名和键值的数组
+
+```
+let obj = {
+  id: 1,
+  name: 'hello',
+  age: 18
+};
+console.log(Object.keys(obj));   // 输出结果: ['id', 'name', 'age']
+console.log(Object.values(obj)); // 输出结果: [1, 'hello', 18]
+console.log(Object.entries(obj));   // 输出结果: [['id', 1], ['name', 'hello'], ['age', 18]
+
+```
+
+**注意**
+
+- Object.keys()方法返回的数组中的值都是字符串，也就是说不是字符串的 key 值会转化为字符串。
+
+- 结果数组中的属性值都是对象本身可枚举的属性，不包括继承来的属性
+
+## ES7
+
+### Array.prototype.includes
+
+includes()方法用来判断一个数组是否包含一个指定的值，如果包含就返回 true，否则返回 false。该方法不会改变原数组。
+
+```
+arr.includes(searchElement, fromIndex)
+```
+
+该方法有两个参数：
+
+- searchElement: 必须，需要查找的元素值
+
+- fromIndex: 可选，从 fromIndex 索引处开始查找目标值。如果为负值，则按升序从 array.length + fromIndex 的索引开始搜索（即是从末尾开始往前跳 fromIndex 的绝对值个索引，然后往后搜索）。默认为 0。
+
+```
+[1, 2, 3].includes(2);  //  true
+[1, 2, 3].includes(4);  //  false
+[1, 2, 3].includes(3, 3);  // false
+[1, 2, 3].includes(3, -1); // true
+```
+
+之前通常使用 indexOf 来判断数组中是否包含某个指定值。但 indexOf 在语义上不够明确直观，同事 indexOf 内部使用===来判等，所以存在对 NaN 的误判，includes 则修复了这个问题。
+
+```
+[1, 2, NaN].indexOf(NaN);   // -1
+[1, 2, NaN].includes(NaN);  //  true
+```
+
+### 指数操作符
+
+指数操作符用来更方便的进行指数计算，它与 Math.pow()等效
+
+```
+Math.pow(2,10); // 1024
+2**10; // 1024
+```
+
+## ES6
+
+### 函数默认参数
+
+只有不传入参数时才会触发默认值
+
+```
+function getPoint(x = 0, y = 0) {
+  console.log(x, y)
+}
+
+getPoint(1, 2) // 1 2
+getPoint() // 0 0
+getPoint(1) // 1 0
+```
+
+当使用函数默认值时，需要注意以下几点：
+
+#### 1. 函数 length 属性值
+
+函数 length 属性通常用来表示函数参数的个数，当引入函数默认值之后，length 表示的就是第一个有默认值参数之前的普通参数的个数。
+
+```
+const funcA = function(x, y) {}
+console.log(funcA.length) // 2
+
+const funcB = function(x, y = 1) {}
+console.log(funcB.length) // 1
+
+const funcC = function(x = 1, y) {}
+console.log(funcC.length) // 0
+```
+
+#### 2. 参数作用域
+
+当给函数的参数设置了默认值之后，参数在被初始化时将形成一个独立作用域，初始化完成后作用域消解。
+
+```
+let x = 1;
+function func(x, y = x) {
+  console.log(y); // 2
+}
+func(2);
+```
+
+在函数调用时，参数 x, y 将形成一个独立的作用域，所以参数中的 y 会等于第一个参数中的 x，而不是上面定义的 1。
+
+### Symbol
+
+新增基本数据类型 Symbol，表示独一无二的值。它是一种类似于字符串的数据类型，它的特点如下：
+
+- Symbol 的值是唯一的，用来解决命名冲突的问题
+
+- Symbol 值不能与其他类型数据进行运算
+
+- Symbol 定义的对象属性不能使用 for...in 遍历循环，但是可以使用 Reflect.ownKeys 来获取对象的所有键名
+
+```
+let s1 = Symbol();
+console.log(typeof s1); // symbol
+
+let s2 = Symbol('hello');
+let s3 = Symbol('hello');
+console.log(s2 === s3); // false
+```
+
+基于以上特性，Symbol 属性类型比较适合用于两类场景:常量值和对象属性
+
+（1）避免常量值重复
+
+getValue 函数会根据传入字符串参数 key 执行对应代码逻辑
+
+```
+function getValue(key) {
+  swith(key) {
+    case 'A':
+    ...
+    case 'B':
+    ...
+  }
+}
+getValue('B')
+```
+
+这段代码对调用者而言非常不友好，因为代码中使用了魔术字符串（Magic string，指的是在代码之中多次出现、与代码形成强耦合的某一个具体的字符串或者数值），导致调用 getValue 函数时需要查看函数代码才能会找到参数 key 的可选值。所以可以将参数 key 的值以常量的方式声明：
+
+```
+const KEY = {
+  alibaba: 'A',
+  baidu: 'B',
+}
+function getValue(key) {
+  switch(key){
+    case KEY.alibaba:
+      ...
+    case KEY.baidu:
+      ...
+  }
+}
+getValue(KEY.baidu);
+```
+
+但这样也并非完美，假设现在要在 KEY 常量中加一个 key，根据对应的规则，很有可能会出现值重复的情况：
+
+```
+const KEY = {
+  alibaba: 'A',
+  baidu: 'B',
+  tencent: 'B'
+}
+
+// getValue(KEY.baidu) 等同于 getValue(KEY.tencent)
+```
+
+所以这种场景更适合使用 Symbol，不需要关心值本身，只关心值的唯一性：
+
+```
+const KEY = {
+  alibaba: Symbol(),
+  baidu: Symbol(),,
+  tencent: Symbol(),
+}
+```
+
+（2）避免对象属性覆盖
+
+函数 fn 需要对传入的对象参数添加一个临时属性 user，但可能该对象参数中已经有这个属性了，如果直接复制就会覆盖之前的值。此时就可以使用 Symbol 来避免这个问题。创建一个 Symbol 数据类型的变量，然后将该变量作为对象参数的属性进行赋值和读取，这样就能避免覆盖的情况：
+
+```
+function fn(o) {
+  const s = Symbol()
+  o[s] = 'zzz'
+}
 ```
