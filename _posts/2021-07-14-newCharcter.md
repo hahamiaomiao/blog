@@ -4,6 +4,373 @@ categories: [学习笔记]
 comments: true
 ---
 
+雅迪电动车解除限制时速的方法：
+1、首先转动钥匙关闭车子电源，然后将车子的车架撑起来，不要染后轮着地；
+2、将油门转把转到底，然后捏紧刹车，再把转动钥匙打开电源，等待 10 秒钟左右再同时松开油门转把和刹车即可，此时电动车也就解除限速了。
+
+## ES13 新特性
+
+### 1. 类成员声明
+
+在之前，我们只能在构造函数里面声明类的成员，而不能像其他大多数语音一样在类的最外层作用域里面声明成员
+
+```
+class Car {
+  constructor() {
+    this.color = 'blue';
+    this.year = '2022';
+  }
+}
+
+const car = new Car();
+console.log(car.color); // blue
+console.log(car.year); // 2022
+```
+
+这么写起来不是很方便，ES13 出来后，可以突破限制，写下如下代码
+
+```
+class Car {
+  color = 'blue';
+  year = '2022';
+}
+
+const car = new Car();
+console.log(car.color); // blue
+console.log(car.year); // 2022
+```
+
+### 2. 给类定义私有方法和成员变量
+
+在此之前，是不可能给类定义私有成员的。所以为了表示某个成员变量是私有属性，会给该属性名增加一个下划线作为后缀。可是这只能作为程序员之间的君子之约来使用，因为这些变量其实还是可以被外界访问到。
+
+```
+class Person {
+  _firstName = 'Jone';
+  _lastName = 'Stevens';
+
+  get name() {
+    return `${this._firstName} ${this._lastName}`;
+  }
+}
+
+const person = new Person();
+console.log(person.name); // Jone Stevens
+
+// 这些所谓的私有属性其实还是可以被外界访问到的
+console.log(person._firstName); // Jone
+console.log(person._lastName); // Stevens
+
+// 而且还可以被修改
+person._firstName = 'Robert';
+person._lastName = 'Black';
+
+console.log(person.name); // Robert Black
+```
+
+不过 ES13 出来后，私有属性不会被别人访问和修改啦。我们只需要给我们的属性名添加一个 hashtag(#)前缀，这个属性就变成私有的了。当属性私有后，任何外界对其的访问都会报错
+
+```
+class Person {
+  #firstName = 'Jone';
+  #lastName = 'Stevens';
+
+  get name() {
+    return `${this.#firstName} ${this.#lastName}`;
+  }
+}
+
+const person = new Person();
+console.log(person.name);
+
+// SyntaxError: Private field '#firstName' must be
+// declared in an enclosing class
+console.log(person.#firstName);
+console.log(person.#lastName);
+```
+
+这里的 SyntaxError 是一个编译时抛出的错误，所以你不会等你的代码运行后才知道这个属性被非法访问了
+
+### 3. 支持在最外层写 await
+
+await 操作符的作用是当我们碰到一个 promise 的时候，我们可以使用 await 来暂停当前代码的执行，等待 promise 被 settled（fulfilled 或者 rejected）了，再继续执行当前的代码。
+
+可是之前使用 await 时就是一定要在一个 async 的函数里面使用而不能在全局作用域里面使用。
+
+```
+function setTimeoutAsync(timeout) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve()
+    }, timeout)
+  })
+}
+
+await setTimeoutAsync(3000);
+// SyntaxError: await is only valid in async functions
+```
+
+ES13 后，我们就可以想上面那么写啦。
+
+### 4. 类支持定义静态成员和静态私有方法
+
+在 ES13 中，我们可以给类定义静态成员和静态私有函数。类的静态方法可以使用 this 关键字访问其他的私有或者公有静态成员，而对于类的实例方法可以通过 this.contructor 来访问这些静态属性
+
+```
+class Person {
+  static #count = 0;
+
+  static getCount() {
+    return this.#count;
+  }
+
+  constructor() {
+    this.constructor.#incrementCount();
+  }
+
+  static #incrementCount() {
+    this.#count++;
+  }
+}
+
+const person1 = new Person();
+const person2 = new Person();
+
+console.log(Person.getCount()); // 2
+```
+
+### 5. 类致辞定义静态代码块
+
+ES13 允许在类中通过 static 关键字定义一系列静态代码块，这些代码块只会在类被创造的时候执行一次。这其实有点像其他面向对象的编程语言的静态构造函数的用法。
+
+一个类可以定义任意多的的静态代码块，这些代码块会和穿插在它们之间的静态成员变量一起按照定义的顺序在类初始化的时候执行一次。我们还可以使用 super 关键字来访问父类的属性。
+
+```
+class Vehicle {
+  static defaultColor = 'blue';
+}
+
+class Car extends Vehicle {
+  static colors = [];
+
+  static {
+    this.colors.push(super.defaultColor, 'red')
+  }
+
+  static {
+    this.colors.push('green');
+  }
+
+  console.log(Car.colors); // ['blue', 'red', 'green']
+}
+```
+
+### 6.使用 in 来判断某个对象是否拥有某个私有属性
+
+Ergonomic brand checks for Private Fields 私有字段检查，通过 in 操作符来判断。
+
+```
+class Car {
+  #color;
+
+  hasColor() {
+    return #color in this;
+  }
+}
+
+const car = new Car();
+console.log(car.hasColor()); // true
+```
+
+这个操作符还可以区分不同类的同名私有属性
+
+```
+calss Car {
+  #color;
+
+  hasColor() {
+    return #color in this;
+  }
+}
+
+class House {
+  #color;
+
+  hasColor() {
+    return #color in this;
+  }
+}
+
+const car = new Car();
+const house = new House();
+
+console.log(car.hasColor()); // true
+console.log(car.hasColor.call(house)); // false
+console.log(house.hasColor()); // true
+console.log(house.hasColor.call(car)); // false
+```
+
+### 7. at 函数来索引元素
+
+此前当我们需要访问数组倒数第 N 个元素时，会使用方括号[数组的长度 - N]，ES13 的 at()函数可以很简便的写出来啦，是需要传入-N 给 at()函数即可。
+
+```
+const arr = ['a', 'b', 'c', 'd'];
+// 倒数第一个元素
+console.log(arr[arr.length - 1]); // d
+// 倒数第二个元素
+console.log(arr[arr.length - 2]); // c
+
+// ES13的at函数方式
+// 倒数第一个元素
+console.log(arr.at(-1)); // d
+// 倒数第二个元素
+console.log(arr.at(-2)); // c
+```
+
+除了数组，string 和 TypedArray 对象也支持 at 函数
+
+```
+const str = 'Coding Beauty';
+console.log(str.at(-1)); // y
+console.log(str.at(-2)); // t
+
+const typedArray = new Uint8Array([16, 32, 48, 64]);
+console.log(typedArray.at(-1)); // 64
+console.log(typedArray.at(-2)); // 48
+```
+
+### 8. 正则表达式匹配字符串的时候支持返回开始和结束索引
+
+这个新属性允许我们告诉 RegExp 在返回 match 对象的时候，给我们返回匹配到的子字符串的开始和结束索引。此前，我们只能获取正则表达式匹配到的子字符串的开始索引，ES13 后，我们可以给正则表达式添加一个 d 的标记来让它在匹配的时候给我们既返回匹配到的子字符串的起始位置也返回其结束位置。
+
+```
+
+const str = 'sun and moon';
+const regexBefore = /and/;
+const regexNow = /and/d;
+const matchObj1 = regexBefore.exec(str);
+const matchObj2 = regexNow.exec(str);
+
+console.log(matchObj1); // [ 'and', index: 4, input: 'sun and moon', groups: undefined ]
+console.log(matchObj2);
+/**
+[
+  'and',
+  index: 4,
+  input: 'sun and moon',
+  groups: undefined,
+  indices: [ [ 4, 7 ], groups: undefined ]
+]
+ */
+```
+
+设置完 d 标记后，多了一个 indices 的数组，里面就是匹配到的子字符串的范围。
+
+### 9. Object.hasOwn()方法
+
+我们可以使用 Object.prototype.hasOwnProperty()来检查某个对象自身是否拥有某个属性，但这个方法是存在问题的，首先它可以被某个类自定义的 hasOwnProperty 方法覆盖掉。其次是当一个对象是通过 Object.create(null)创建出来的具有 null 原型的对象时，该对象调用 hasOwnProperty 方法时会报错
+
+问题 1
+
+```
+class Car {
+  color = 'green';
+  age = 2;
+
+  // 你看这个方法就没有告诉我们这个类的对象是不是有某个属性
+  hasOwnProperty() {
+    return false;
+  }
+}
+
+const car = new Car();
+
+console.log(car.hasOwnProperty('age')); // false
+console.log(car.hasOwnProperty('name')); // false
+```
+
+问题 2
+
+```
+const obj = Object.create(null);
+obj.color = 'green';
+obj.age = 2;
+
+// TypeError: obj.hasOwnProperty is not a function
+console.log(obj.hasOwnProperty('color'));
+```
+
+解决上述问题的一种方法就是调用 Object.prototype.hasOwnProperty 这个 Function 的 call 方法
+
+```
+const obj = Object.create(null);
+obj.color = 'green';
+obj.age = 2;
+obj.hasOwnProperty = () => false;
+
+Object.prototype.hasOwnProperty.call(obj, 'color'); // true
+```
+
+当 hasOwnProperty 需要被多次调用的时候，可以通过将这部分逻辑抽象成一个方法来减少重复的代码
+
+```
+function objHasOwnProp(obj, propertyKey) {
+  return Object.prototype.hasOwnProperty.call(obj, propertyKey);
+}
+
+const obj = Object.create(null);
+obj.color = 'green';
+obj.age = 2;
+obj.hasOwnProperty = () => false;
+
+console.log(objHasOwnProp(obj, 'color')); // true
+console.log(objHasOwnProp(obj, 'name')); // false
+```
+
+尽管这样还是看着好麻烦，所以 ES13 推出了全新的 Object.hasOwn()函数。这个新的内置函数接收 2 个参数，参数一是对象，参数二是属性，如果对象本身就有这个属性的话，这个函数会返回 true，否则返回 false。
+
+```
+const obj = Object.create(null);
+obj.color = 'green';
+obj.age = 2;
+obj.hasOwnProperty = () => false;
+
+console.log(Object.hasOwn(obj, 'color')); // true
+console.log(Object.hasOwn(obj, 'name')); // false
+```
+
+### 10. Error 对象的 Cause 属性
+
+ES13 后，Error 对象多了一个 cause 属性来指明错误出现的原因。该属性可帮助我们为错误添加更多的上下文信息，从而帮助使用者更好地定位错误。该属性是我们在创建 error 对象时传进去的第二个参数对象的 cause 属性。
+
+```
+function userAction() {
+  try {
+    apiCallThatCanThrow();
+  } catch (err) {
+    console.log(err);
+    console.log(`Cause by: ${err.cause}`);
+  }
+}
+```
+
+### 11. 数组支持逆序查找
+
+findLast()和 findLastIndex()出来后，数组就支持后序查找元素。
+
+应用场景就是我们本身就是想要寻找最后一个满足某个条件的元素，例如找到数组里面最后一个偶数。
+
+```
+const nums = [7, 14, 3, 8, 10, 9];
+
+const lastEven = nums.findLast((num) => num % 2 === 0);
+const lastEvenIndex = nums.findLastIndex((num) => num % 2 === 0);
+
+console.log(lastEven); // 10
+console.log(lastEvenIndex); // 4
+```
+
 ## ES12 新特性
 
 ### 1. String.prototype.replaceAll
